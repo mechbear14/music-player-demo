@@ -23,6 +23,10 @@ body {
   flex-grow: 1;
 }
 
+.container .canvas-box {
+  background-color: #004040;
+}
+
 .container .canvas-box #canvas {
   border: 1px black solid;
 }

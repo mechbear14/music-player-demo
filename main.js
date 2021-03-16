@@ -22,9 +22,16 @@ out vec4 outColour;
 
 void main(){
   vec2 st = gl_FragCoord.xy / u_resolution.xy;
-  st.x = floor(st.x * 100.0);
-  vec4 textureColour = texture(u_texture, vec2(st.x / 512.0, 0.5));
-  outColour = textureColour;
+  float index = floor(st.x * 100.0);
+  float localX = fract(st.x * 100.0) - 0.5;
+  float localY = (st.y - 0.3) / (1.0 - 0.3);
+  float amplitude = texture(u_texture, vec2(index / 512.0, 0.5)).x;
+
+  vec4 background = vec4(0.0);
+  vec4 white = vec4(1.0);
+  float selector = smoothstep(0.3, 0.2, abs(localX)) * smoothstep(amplitude + 0.05, amplitude, abs(localY));
+  float globalMult = min(max(0.5 * pow(localY + 1.0, 4.0), step(0.0, localY)), 1.0);
+  outColour = mix(background, white, selector * globalMult);
 }
 `;
 

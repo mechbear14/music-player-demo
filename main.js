@@ -16,18 +16,15 @@ const fragmentShaderCode = `#version 300 es
 precision mediump float;
 
 uniform vec2 u_resolution;
+uniform sampler2D u_texture;
 
 out vec4 outColour;
 
 void main(){
   vec2 st = gl_FragCoord.xy / u_resolution.xy;
-  st = st * 2.0 - 1.0;
-  st.x *= u_resolution.x / u_resolution.y;
-  vec4 c = vec4(1.0, 0.5, 0.0, 1.0);
-  vec4 w = vec4(1.0, 1.0, 1.0, 1.0);
-  float circle = smoothstep(0.2, 0.3, dot(st, st));
-  vec4 colour = mix(c, w, circle);
-  outColour = colour;
+  st.x = floor(st.x * 100.0);
+  vec4 textureColour = texture(u_texture, vec2(st.x / 512.0, 0.5));
+  outColour = textureColour;
 }
 `;
 
@@ -37,7 +34,7 @@ function setupAudio(audioElement) {
   const audioContext = new AudioContext();
   const source = audioContext.createMediaElementSource(audioElement);
   const fft = audioContext.createAnalyser();
-  fft.fftSize = 512; // Fast Fourier Transform
+  fft.fftSize = 1024; // Fast Fourier Transform
   const buffer = new Uint8Array(fft.frequencyBinCount);
   source.connect(fft).connect(audioContext.destination);
   return { source, fft, buffer };
@@ -123,6 +120,27 @@ function resize(context, size) {
 
 function drawFFT(context, buffer) {
   const { gl, vertexArray, program } = context;
+  const textureType = gl.TEXTURE_2D;
+  const level = 0;
+  const format = gl.LUMINANCE;
+  const width = 512;
+  const height = 1;
+  const border = 0;
+  const type = gl.UNSIGNED_BYTE;
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(
+    textureType,
+    level,
+    format,
+    width,
+    height,
+    border,
+    format,
+    type,
+    buffer
+  );
+  gl.generateMipmap(gl.TEXTURE_2D);
   const primitiveType = gl.TRIANGLE_STRIP;
   const offset = 0;
   const count = 4;
